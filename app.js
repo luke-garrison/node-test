@@ -1,14 +1,24 @@
 const http = require('http');
-
-const hostname = '0.0.0.0'; // Listen on all available network interfaces
+const target_ip = '18.191.213.254'; 
 const port = 3000;
 
 const server = http.createServer((req, res) => {
-  res.statusCode = 200;
-  res.setHeader('Content-Type', 'text/plain');
-  res.end('Hello World from Node.js\n');
+  const options = {
+    hostname: target_ip,
+    port: 3000,
+    path: req.url,
+    method: req.method,
+    headers: req.headers
+  };
+
+  const proxyReq = http.request(options, (proxyRes) => {
+    res.writeHead(proxyRes.statusCode, proxyRes.headers);
+    proxyRes.pipe(res, { end: true }); 
+  });
+
+  req.pipe(proxyReq, { end: true }); 
 });
 
-server.listen(port, hostname, () => {
-  console.log(`Server running at http://${hostname}:${port}/`);
+server.listen(port, () => {
+  console.log(`Proxy server running at http://localhost:${port}/`);
 });
